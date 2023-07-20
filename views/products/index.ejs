@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Products</title>
+</head>
+<body>
+
+    <h1><%= category.toUpperCase() %> PRODUCTS</h1>
+    <ul>
+        <% for(let pro of allproducts){ %>
+            <li>
+                <a href="allproducts/<%= pro._id %>"><%= pro.name %></a>
+            </li>
+        <% } %>
+    </ul>
+    
+    <a href="/allproducts/new">Create New Product</a>
+
+</body>
+</html>
