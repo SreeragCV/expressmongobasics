@@ -19,8 +19,13 @@ app.set('view engine', 'ejs');
 app.use(express.urlencoded({extended:true}));
 app.use(methodOverride('_method'))
 
-app.get('/allproducts', async (req, res, next) => {
-    try{
+function wrapAsync(fn){
+    return (req, res, next) => {
+        fn(req, res, next).catch(e => next(e))
+    }
+}
+
+app.get('/allproducts', wrapAsync(async (req, res, next) => {
     const { category } = req.query;
     if(category){
         allproducts = await product.find({ category })
@@ -29,58 +34,43 @@ app.get('/allproducts', async (req, res, next) => {
         const allproducts = await product.find({});
         res.render('products/index', { allproducts, category : 'ALL' })
     } 
-      } catch(e){
-         next(e)
-    }
-})
+}))
 
 app.get('/allproducts/new', (req, res) => {
     res.render('products/new')
 })
 
-app.post('/allproducts', async (req, res, next) => {
-   try{const newproduct = new product(req.body);
+app.post('/allproducts', wrapAsync(async (req, res, next) => {
+   const newproduct = new product(req.body);
    await newproduct.save();
    res.redirect('/allproducts');
-   } catch(e){
-    next(e)
-   }
-})
+   
+}))
 
-app.get('/allproducts/:id', async (req, res, next) => {
-    try {const { id } = req.params;
+app.get('/allproducts/:id', wrapAsync(async (req, res, next) => {
+    const { id } = req.params;
     const foundproduct = await product.findById(id);
     if(!foundproduct){
        throw new AppError('Cannot find the Product by this id', 404);
     }
     res.render('products/show', { foundproduct })
-} catch(e){
-    next(e);
-}
-})
+}))
 
-app.get('/allproducts/:id/edit', async (req, res, next) => {
-   try{ 
+app.get('/allproducts/:id/edit', wrapAsync(async (req, res, next) => {
     const { id } = req.params;
     const foundproduct = await product.findById(id);
     if(!foundproduct){
         throw new AppError('Product not found', 404);
     }
     res.render('products/edit', { foundproduct });
-} catch(e){
-    next(e);
-}
-})
+}))
 
-app.put('/allproducts/:id', async (req, res, next) => {
-   try{
+app.put('/allproducts/:id', wrapAsync(async (req, res, next) => {
     const { id } = req.params;
     const updatedproduct = await product.findByIdAndUpdate(id, req.body, { runValidators: true, new : true })
     res.redirect(`/allproducts/${updatedproduct._id}`);
-   } catch(e){
-    next(e)
-   }
-})
+   
+}))
 
 app.delete('/allproducts/:id', async (req, res) => {
     const {id} = req.params;
